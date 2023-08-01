@@ -18,7 +18,8 @@ const WelcomeScreen = ({navigation}) => {
 
         <Label value='Frase de efeito' style={styles.lbl}/>
 
-        <Button label={'Primeiro acesso'} style={styles.lightBtn} labelStyle={styles.lightBtnLbl}/>
+        <Button label={'Primeiro acesso'} style={styles.lightBtn} labelStyle={styles.lightBtnLbl}
+            onPress={() => navigation.navigate('primeiroAcesso')}/>
 
         <Button label={'Entrar'} onPress={() => navigation.navigate('login')}/>
       </View>

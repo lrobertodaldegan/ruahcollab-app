@@ -7,13 +7,12 @@ import {
   TextInput,
 } from 'react-native';
 import Button from '../../components/Button';
-import Label from '../../components/Label';
-import Link from '../../components/Link';
+import Footer from '../../components/Footer';
 import Logo from '../../components/Logo';
+import Label from '../../components/Label';
 
-const LoginScreen = ({navigation}) => {
+const ResetSenhaScreen = ({route, navigation}) => {
   const [email, setEmail] = useState(null);
-  const [pass, setPass]   = useState(null);
 
   return (
     <>
@@ -23,19 +22,16 @@ const LoginScreen = ({navigation}) => {
         <Logo style={styles.logo} />
 
         <View style={styles.formWrap}>
-          <Label value='Informe seus dados para entrar:' style={styles.lbl}/>
+          <Label value='Confirme seu e-mail:' style={styles.title}/>
 
           <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu e-mail'
+              placeholder='Seu email'
               value={email} onChangeText={(val) => setEmail(val)}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Sua senha'
-              value={pass} onChangeText={(val) => setPass(val)}/>
-
-          <Button label={'Entrar'} onPress={() => navigation.navigate('inscricoes')}/>
-
-          <Link label='Esqueci a minha senha' onPress={() => navigation.navigate('reset')}/>
+          <Button label={'Enviar link'} onPress={() => navigation.navigate('welcome')}/>
+          
+          <Label value='Enviaremos um link para reset de senha automático.'
+              style={styles.legend}/>
         </View>
       </View>
     </>
@@ -56,14 +52,12 @@ const styles= StyleSheet.create({
     width:150,
     height:150,
     marginTop:120,
-  },
-  lbl:{
-    marginTop:80,
-    marginBottom:10
+    marginBottom:80
   },
   input:{
     borderRadius:10,
     marginVertical: 5,
+    marginBottom:80,
     width:size.width - 40,
     height: 50 ,
     paddingHorizontal:10,
@@ -71,6 +65,9 @@ const styles= StyleSheet.create({
     borderWidth:2,
     fontFamily:'Montserrat-Regular'
   },
+  legend:{
+    fontSize:12
+  },
 });
 
-export default LoginScreen;
+export default ResetSenhaScreen;

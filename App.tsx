@@ -6,6 +6,8 @@ import LoginScreen from './src/screens/Login/LoginScreen';
 import InscricoesScreen from './src/screens/Inscricoes/InscricoesScreen';
 import PesquisaScreen from './src/screens/Pesquisa/PesquisaScreen';
 import ProfileScreen from './src/screens/Profile/ProfileScreen';
+import PrimeiroAcessoScreen from './src/screens/PrimeiroAcesso/PrimeiroAcessoScreen';
+import ResetSenhaScreen from './src/screens/ResetSenha/ResetSenhaScreen';
 
 const ScreensOptions = {
   headerShown: false,
@@ -23,6 +25,8 @@ function App(): JSX.Element {
         <Stack.Screen name="inscricoes" component={InscricoesScreen} options={ScreensOptions} />
         <Stack.Screen name="pesquisa" component={PesquisaScreen} options={ScreensOptions} />
         <Stack.Screen name="profile" component={ProfileScreen} options={ScreensOptions} />
+        <Stack.Screen name="primeiroAcesso" component={PrimeiroAcessoScreen} options={ScreensOptions} />
+        <Stack.Screen name="reset" component={ResetSenhaScreen} options={ScreensOptions} />
       </Stack.Navigator>
     </NavigationContainer>
   );
