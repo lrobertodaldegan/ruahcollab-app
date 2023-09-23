@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {
   View,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
@@ -9,45 +10,89 @@ import {
 import Button from '../../components/Button';
 import Logo from '../../components/Logo';
 import Label from '../../components/Label';
+import DeviceInfo from 'react-native-device-info';
+import CacheService from '../../service/Cache/CacheService';
+import {post} from '../../service/Rest/RestService';
 
-const PrimeiroAcessoScreen = ({route, navigation}) => {
+const PrimeiroAcessoScreen = ({navigation}) => {
   const [email, setEmail] = useState(null);
   const [nome, setNome] = useState(null);
   const [telefone, setTelefone] = useState(null);
   const [resumo, setResumo] = useState(null);
+  const [senha, setSenha] = useState(null);
+
+  const handleSubmit = () => {
+    let deviceId = DeviceInfo.getDeviceId();
+    let uniqueId = DeviceInfo.getUniqueIdSync();
+
+    let device = {
+      id: deviceId,
+      uniqueId: uniqueId,
+    }
+
+    let user = {
+      name: nome,
+      resumo: resumo,
+      phone: telefone,
+      email: email
+    }
+
+    post('/auth/v/signup', {...user, password:senha, device:device}).then(response => {
+      if(response.status == 201){
+        handleSignin();
+      } else {
+        navigation.navigate('error');
+      }
+    }).catch(err => {
+      console.log(err); 
+      navigation.navigate('error');
+    });
+  }
+
+  const handleSignin = () => {
+    post('/auth/signin', {email:email, password:senha}).then(response => {
+      if(response.status == 200){
+        CacheService.register('@jwt', response.data.token)
+          .then(() => navigation.navigate('inscricoes'))
+          .catch((err) => console.log(err));
+      }
+    }).catch(err => {console.log(err); navigation.navigate('error');});
+  }
 
   return (
     <>
       <StatusBar backgroundColor='#fafafa' barStyle='dark-content'/>
 
-      <View style={styles.wrap}>
+      <ScrollView contentContainerStyle={styles.wrap}>
         <Logo style={styles.logo} />
 
-        <View style={styles.formWrap}>
-          <Label value='Informe seus dados para cadastro:' style={styles.title}/>
+        <Label value='Informe seus dados para cadastro:' style={styles.title}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu nome'
-              value={nome} onChangeText={(val) => setNome(val)}/>
+        <TextInput style={styles.input} placeholderTextColor='#b57145'
+            placeholder='Seu nome'
+            value={nome} onChangeText={(val) => setNome(val)}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu telefone'
-              value={telefone} onChangeText={(val) => setTelefone(val)}/>
+        <TextInput style={styles.input} placeholderTextColor='#b57145'
+            placeholder='Seu telefone (Ex.: 041995429288)'
+            value={telefone} onChangeText={(val) => setTelefone(val)}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu email'
-              value={email} onChangeText={(val) => setEmail(val)}/>
+        <TextInput style={styles.input} placeholderTextColor='#b57145'
+            placeholder='Seu email'
+            value={email} onChangeText={(val) => setEmail(val)}/>
 
-          <TextInput style={styles.txtArea} placeholderTextColor='#8A4A20'
-              placeholder='Nos conte sobre você (profissão, experiência, etc)'
-              value={resumo} onChangeText={(val) => setResumo(val)}/>
+        <TextInput style={styles.input} placeholderTextColor='#b57145'
+            placeholder='Sua senha'
+            value={senha} onChangeText={(val) => setSenha(val)}/>
 
-          <Button label={'Pronto!'} onPress={() => navigation.navigate('inscricoes')}/>
+        <TextInput style={styles.txtArea} placeholderTextColor='#b57145'
+            placeholder='Nos conte sobre você (profissão, experiência, etc)'
+            value={resumo} onChangeText={(val) => setResumo(val)}/>
 
-          <Label value='Fique tranquilo(a)! Não compartilharemos seus dados com terceiros.'
-              style={styles.legend}/>
-        </View>
-      </View>
+        <Button label={'Pronto!'} onPress={() => handleSubmit()}/>
+
+        <Label value='Fique tranquilo(a)! Não compartilharemos seus dados com terceiros.'
+            style={styles.legend}/>
+      </ScrollView>
     </>
   );
 }
@@ -75,9 +120,10 @@ const styles= StyleSheet.create({
     width:size.width - 40,
     height: 50 ,
     paddingHorizontal:10,
-    borderColor:'#F8E3D6',
+    borderColor:'#FCF3ED',
     borderWidth:2,
-    fontFamily:'Montserrat-Regular'
+    fontFamily:'Montserrat-Regular',
+    color:'#8A4A20'
   },
   txtArea:{
     borderRadius:10,
@@ -86,9 +132,10 @@ const styles= StyleSheet.create({
     width:size.width - 40,
     height: 150 ,
     paddingHorizontal:10,
-    borderColor:'#F8E3D6',
+    borderColor:'#FCF3ED',
     borderWidth:2,
-    fontFamily:'Montserrat-Regular'
+    fontFamily:'Montserrat-Regular',
+    color:'#8A4A20'
   },
   legend:{
     fontSize:12

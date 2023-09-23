@@ -1,6 +1,7 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {
   View,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
@@ -10,12 +11,47 @@ import Button from '../../components/Button';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import Label from '../../components/Label';
+import {get, put} from '../../service/Rest/RestService';
+import CacheService from '../../service/Cache/CacheService';
 
-const LoginScreen = ({route, navigation}) => {
-  const [email, setEmail] = useState(null);
+const ProfileScreen = ({navigation}) => {
   const [nome, setNome] = useState(null);
   const [telefone, setTelefone] = useState(null);
   const [resumo, setResumo] = useState(null);
+  const [senha, setSenha] = useState(null);
+  const [btnLbl, setBtnLbl] = useState('Salvar');
+
+  useEffect(() => {
+    get('/user', () => navigation.navigate('login')).then(response => {
+      if(response.status == 200){
+        let user = response.data;
+
+        setTelefone(user.phone);
+        setResumo(user.resume);
+        setNome(user.name);
+      }
+    }).catch(err => {console.log(err); navigation.navigate('error');});
+  }, []);
+
+  const handleSubmit = async () => {
+    let body = {
+      phone:telefone,
+      resume:resumo,
+      name:nome,
+    }
+
+    if(senha && senha != null)
+      body.password = senha;
+
+    put('/user', body, () => navigation.navigate('login')).then(response => {
+      if(response.status == 200)
+        setBtnLbl('Salvo!');
+    }).catch(err => {console.log(err); navigation.navigate('error');});
+  }
+
+  const handleLogout = () => {
+    CacheService.wipe('@jwt').then(() => navigation.navigate('welcome'));
+  }
 
   return (
     <>
@@ -24,29 +60,37 @@ const LoginScreen = ({route, navigation}) => {
       <View style={styles.wrap}>
         <Header navigation={navigation}/>
 
-        <View style={styles.formWrap}>
+        <ScrollView contentContainerStyle={styles.formWrap}>
           <Label value='Perfil' style={styles.title}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu nome'
+          <TextInput style={styles.input} placeholderTextColor='#b57145'
+              placeholder='Seu novo nome'
               value={nome} onChangeText={(val) => setNome(val)}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu telefone'
+          <TextInput style={styles.input} placeholderTextColor='#b57145'
+              placeholder='Seu novo telefone'
               value={telefone} onChangeText={(val) => setTelefone(val)}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu email'
-              value={email} onChangeText={(val) => setEmail(val)}/>
+          <TextInput style={styles.input} placeholderTextColor='#b57145'
+              placeholder='Sua nova senha'
+              value={senha} onChangeText={(val) => setSenha(val)}/>
 
-          <TextInput style={styles.txtArea} placeholderTextColor='#8A4A20'
-              placeholder='Resumo'
+          <TextInput style={styles.txtArea} placeholderTextColor='#b57145'
+              placeholder='Seu novo resumo'
               value={resumo} onChangeText={(val) => setResumo(val)}/>
 
-          <Button label={'Salvar'} onPress={() => navigation.navigate('inscricoes')}/>
-        </View>
+          <Button label={btnLbl} onPress={() => handleSubmit()}/>
 
+          <Label value='Caso precise trocar seu e-mail, entre em contato com o nosso time.'
+              style={styles.legend}/>
+        
+          <Button label={"Sair"} onPress={() => handleLogout()}
+              style={styles.lightBtn} labelStyle={styles.lightBtnLbl}/>
+        
+        </ScrollView>
+        
         <Footer navigation={navigation} />
+      
       </View>
     </>
   );
@@ -73,9 +117,10 @@ const styles= StyleSheet.create({
     width:size.width - 40,
     height: 50 ,
     paddingHorizontal:10,
-    borderColor:'#F8E3D6',
+    borderColor:'#FCF3ED',
     borderWidth:2,
-    fontFamily:'Montserrat-Regular'
+    fontFamily:'Montserrat-Regular',
+    color:'#8A4A20'
   },
   txtArea:{
     borderRadius:10,
@@ -83,10 +128,21 @@ const styles= StyleSheet.create({
     width:size.width - 40,
     height: 150 ,
     paddingHorizontal:10,
-    borderColor:'#F8E3D6',
+    borderColor:'#FCF3ED',
     borderWidth:2,
-    fontFamily:'Montserrat-Regular'
+    fontFamily:'Montserrat-Regular',
+    color:'#8A4A20'
+  },
+  legend:{
+    fontSize:12,
+    marginBottom:30
+  },
+  lightBtn: {
+    backgroundColor:'#FCF3ED'
+  },
+  lightBtnLbl: {
+    color:'#8A4A20',
   },
 });
 
-export default LoginScreen;
+export default ProfileScreen;

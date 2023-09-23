@@ -10,10 +10,29 @@ import Button from '../../components/Button';
 import Label from '../../components/Label';
 import Link from '../../components/Link';
 import Logo from '../../components/Logo';
+import {post} from '../../service/Rest/RestService';
+import CacheService from '../../service/Cache/CacheService';
 
 const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState(null);
   const [pass, setPass]   = useState(null);
+  const [btnLbl, setBtnLbl] = useState('Entrar');
+
+  const handleSubmit = () => {
+    CacheService.wipe('@jwt');
+
+    setBtnLbl('Entrando...');
+
+    post('/auth/signin', {email: email, password: pass}).then((response) => {
+      if(response.status == 200){
+        CacheService.register('@jwt', response.data.token);
+
+        navigation.navigate('inscricoes');
+      } else {
+        setBtnLbl('Tente novamente!');
+      }
+    }).catch(err => {console.log(err); setBtnLbl('Tente novamente!');});
+  }
 
   return (
     <>
@@ -25,15 +44,15 @@ const LoginScreen = ({navigation}) => {
         <View style={styles.formWrap}>
           <Label value='Informe seus dados para entrar:' style={styles.lbl}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
+          <TextInput style={styles.input} placeholderTextColor='#b57145'
               placeholder='Seu e-mail'
               value={email} onChangeText={(val) => setEmail(val)}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
+          <TextInput style={styles.input} placeholderTextColor='#b57145'
               placeholder='Sua senha'
               value={pass} onChangeText={(val) => setPass(val)}/>
 
-          <Button label={'Entrar'} onPress={() => navigation.navigate('inscricoes')}/>
+          <Button label={btnLbl} onPress={() => handleSubmit()}/>
 
           <Link label='Esqueci a minha senha' onPress={() => navigation.navigate('reset')}/>
         </View>
@@ -67,9 +86,10 @@ const styles= StyleSheet.create({
     width:size.width - 40,
     height: 50 ,
     paddingHorizontal:10,
-    borderColor:'#F8E3D6',
+    borderColor:'#FCF3ED',
     borderWidth:2,
-    fontFamily:'Montserrat-Regular'
+    fontFamily:'Montserrat-Regular',
+    color:'#8A4A20'
   },
 });
 

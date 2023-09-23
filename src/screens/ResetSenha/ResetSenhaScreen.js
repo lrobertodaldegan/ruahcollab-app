@@ -1,39 +1,53 @@
 import {useState} from 'react';
 import {
   View,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
   TextInput,
 } from 'react-native';
 import Button from '../../components/Button';
-import Footer from '../../components/Footer';
 import Logo from '../../components/Logo';
 import Label from '../../components/Label';
+import {post} from '../../service/Rest/RestService';
 
-const ResetSenhaScreen = ({route, navigation}) => {
+const ResetSenhaScreen = ({navigation}) => {
   const [email, setEmail] = useState(null);
+  const [btnLbl, setBtnLbl] = useState('Enviar código');
+
+  const handleSendLink = () => {
+    setBtnLbl('Enviando...');
+
+    post('/user/forgot', {email:email}).then(response => {
+      if(response.status == 200){
+        navigation.navigate('codeValidation');
+      } else {
+        navigation.navigate('error');
+      }
+    }).catch(err => {console.log(err);navigation.navigate('error');});
+  }
 
   return (
     <>
       <StatusBar backgroundColor='#fafafa' barStyle='dark-content'/>
 
-      <View style={styles.wrap}>
+      <ScrollView contentContainerStyle={styles.wrap}>
         <Logo style={styles.logo} />
 
         <View style={styles.formWrap}>
           <Label value='Confirme seu e-mail:' style={styles.title}/>
 
-          <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Seu email'
+          <TextInput style={styles.input} placeholderTextColor='#b57145'
+              placeholder='Seu email cadastrado'
               value={email} onChangeText={(val) => setEmail(val)}/>
 
-          <Button label={'Enviar link'} onPress={() => navigation.navigate('welcome')}/>
+          <Button label={btnLbl} onPress={() => handleSendLink()}/>
           
-          <Label value='Enviaremos um link para reset de senha automático.'
+          <Label value='Enviaremos um código de confirmação para reset de senha ao o e-mail cadastrado.'
               style={styles.legend}/>
         </View>
-      </View>
+      </ScrollView>
     </>
   );
 }
@@ -61,9 +75,10 @@ const styles= StyleSheet.create({
     width:size.width - 40,
     height: 50 ,
     paddingHorizontal:10,
-    borderColor:'#F8E3D6',
+    borderColor:'#FCF3ED',
     borderWidth:2,
-    fontFamily:'Montserrat-Regular'
+    fontFamily:'Montserrat-Regular',
+    color:'#8A4A20'
   },
   legend:{
     fontSize:12

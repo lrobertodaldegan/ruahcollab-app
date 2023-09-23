@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import { 
   View,
   StyleSheet,
@@ -12,11 +12,22 @@ import Icon from "./Icon";
 import { faCircleUser, faPlaceOfWorship, faLungs } from '@fortawesome/free-solid-svg-icons'
 import Button from './Button';
 
-const link = 'https://www.acaodoespirito.com.br';
+const link = 'https://rc.acaodoespirito.com.br';
 
-const Header = ({navigation, searchActive=false}) => {
+const Header = ({navigation, searchAction=(search, filter)=>null, searchActive=false}) => {
   const [search, setSearch] = useState(null);
   const [filter, setFilter] = useState(null);
+
+  useEffect(() => {
+    searchAction(search, filter);
+  }, [filter]);
+
+  const handleChangeFilters = (ftr) => {
+    if(filter === ftr)
+      setFilter(null);
+    else
+      setFilter(ftr);
+  }
 
   const getLeftComponent = () => {
     if(searchActive === true){
@@ -25,7 +36,7 @@ const Header = ({navigation, searchActive=false}) => {
           <Logo style={styles.logoReduce}/>
 
           <TextInput style={styles.input} placeholderTextColor='#8A4A20'
-              placeholder='Busque por demanda ou insctituição'
+              placeholder='Busque por demanda ou instituição'
               value={search} onChangeText={(val) => setSearch(val)}/>
         </View>
       );
@@ -38,11 +49,12 @@ const Header = ({navigation, searchActive=false}) => {
     if(searchActive === true){
       return (
         <>
-          <Button label='Pesquisar' style={styles.btn} labelStyle={styles.btnLbl}/>
+          <Button label='Pesquisar' style={styles.btn} 
+              labelStyle={styles.btnLbl} onPress={() => searchAction(search, filter)}/>
 
           <View style={styles.filterOptsWrap}>
             <Button label='Instituição' icon={faPlaceOfWorship} 
-                iconPosition='l' onPress={() => setFilter('instituicao')}
+                iconPosition='l' onPress={() => handleChangeFilters('instituicao')}
                 iconStyle={[styles.btnIcon, filter === 'instituicao' 
                                                     ? styles.btnFilterLblSelected
                                                     : {}]}
@@ -55,7 +67,7 @@ const Header = ({navigation, searchActive=false}) => {
             />
 
             <Button label='Demanda' icon={faLungs} 
-                iconPosition='l' onPress={() => setFilter('demanda')}
+                iconPosition='l' onPress={() => handleChangeFilters('demanda')}
                 iconStyle={[styles.btnIcon, filter === 'demanda' 
                                                     ? styles.btnFilterLblSelected
                                                     : {}]}

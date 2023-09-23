@@ -1,52 +1,53 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {
   View,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
   FlatList,
 } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import DemandaCard from '../../components/DemandaCard';
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import Label from '../../components/Label';
-import logo from '../../assets/img/Logo.png';
-
-const demandasIncrito = [
-  {
-    id:0,
-    titulo:'Atendimento psicológico semanal',
-    fotos:[logo, logo, logo],
-    descricao:'Resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo',
-    recorrencia:'Semanal',
-    status:'aceito',
-    instituicao:{
-      nome:"Igreja Ação do Espírito",
-      telefone:'+5541999999999',
-      email:'email@email.com',
-      endereco:"Rua XXX, Bairro X, Cidade/Estado",
-      qtdDemandas:10
-    }
-  },
-  {
-    id:1,
-    titulo:'Atendimento psicológico semanal',
-    fotos:[logo, logo, logo],
-    descricao:'Resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo resumo',
-    recorrencia:'Semanal',
-    status:'aceito',
-    instituicao:{
-      nome:"Igreja Ação do Espírito",
-      telefone:'+5541999999999',
-      email:'email@email.com',
-      endereco:"Rua XXX, Bairro X, Cidade/Estado",
-      qtdDemandas:10
-    }
-  }
-];
+import Loader from '../../components/Loader';
+import { get } from '../../service/Rest/RestService';
 
 const InscricoesScreen = ({navigation}) => {
+  const [loading, setLoading] = useState(true);
+  const [inscricoes, setInscricoes] = useState([]);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    get('/subscription', () => navigation.navigate('error')).then(response => {
+      if(response.status === 200)
+        setInscricoes(response.data);
+
+      setLoading(false);
+    });
+  }, [isFocused]);
+
+  const renderSubs = () => {
+    if(loading){
+      return <Loader color='#8A4A20'/>
+    } else {
+      return (
+        <FlatList style={styles.content}
+            ListHeaderComponent={<Label style={styles.title}
+                                    value='Minhas inscrições:'/>}
+            keyExtractor={(item) => item.id}
+            data={inscricoes}
+            renderItem={({item}) => {
+              if(item)
+                return <DemandaCard item={item}/>
+              else
+                return <></>
+            }}
+        />
+      )
+    }
+  }
 
   return (
     <>
@@ -55,17 +56,7 @@ const InscricoesScreen = ({navigation}) => {
       <View style={styles.wrap}>
         <Header navigation={navigation}/>
 
-        <FlatList style={styles.content}
-            ListHeaderComponent={<Label style={styles.title}
-                                    value='Minhas inscrições:'/>}
-            keyExtractor={(item) => item.id}
-            data={demandasIncrito}
-            renderItem={({item}) => {
-              return (
-                <DemandaCard item={item}/>
-              );
-            }}
-        />
+        {renderSubs()}
 
         <Footer navigation={navigation} selected='inscricoes'/>
       </View>

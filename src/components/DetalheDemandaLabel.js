@@ -1,17 +1,22 @@
 import {
   StyleSheet,
-  View
+  View,
+  TouchableHighlight
 } from 'react-native';
 import Label from './Label';
 import Icon from './Icon';
 
-const DetalheDemandaLabel = ({label, icon}) => {
+const DetalheDemandaLabel = ({label, icon, action=()=>null}) => {
   return (
-    <View style={styles.il}>
-      <Icon icon={icon} size={18} style={styles.icon}/>
+    <TouchableHighlight
+        onPress={() => action()} underlayColor={'#8A4A20'}>
+          
+      <View style={styles.il}>
+        <Icon icon={icon} size={18} style={styles.icon}/>
 
-      <Label value={label} style={styles.detail}/>
-    </View>
+        <Label value={label} style={styles.detail}/>
+      </View>
+    </TouchableHighlight>
   );
 }
 
