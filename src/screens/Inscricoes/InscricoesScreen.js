@@ -1,12 +1,12 @@
 import {useState, useEffect} from 'react';
 import {
-  View,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
   FlatList,
+  RefreshControl,
 } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
 import DemandaCard from '../../components/DemandaCard';
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
@@ -17,35 +17,65 @@ import { get } from '../../service/Rest/RestService';
 const InscricoesScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [inscricoes, setInscricoes] = useState([]);
-  const isFocused = useIsFocused();
 
-  useEffect(() => {
+  const init = () => {
+    setLoading(true);
+    setInscricoes([]);
+
     get('/subscription', () => navigation.navigate('error')).then(response => {
       if(response.status === 200)
         setInscricoes(response.data);
 
       setLoading(false);
     });
-  }, [isFocused]);
+  }
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  const renderHeader = () => {
+    return (
+      <>
+        <Header navigation={navigation}/>
+
+        <Label style={styles.title} value='Minhas inscrições:'/>
+      </>
+    )
+  }
 
   const renderSubs = () => {
     if(loading){
-      return <Loader color='#8A4A20'/>
+      return <Loader />
     } else {
-      return (
-        <FlatList style={styles.content}
-            ListHeaderComponent={<Label style={styles.title}
-                                    value='Minhas inscrições:'/>}
-            keyExtractor={(item) => item.id}
-            data={inscricoes}
-            renderItem={({item}) => {
-              if(item)
-                return <DemandaCard item={item}/>
-              else
-                return <></>
-            }}
-        />
-      )
+      if(inscricoes && inscricoes.length > 0){
+        return (
+          <FlatList style={styles.content}
+              ListHeaderComponent={renderHeader()}
+              keyExtractor={(item) => item.id}
+              data={inscricoes}
+              refreshControl={
+                <RefreshControl refreshing={loading} onRefresh={() => init()}/>
+              }
+              renderItem={({item}) => {
+                if(item)
+                  return <DemandaCard item={item}/>
+                else
+                  return <></>
+              }}
+          />
+        )
+      } else {
+        return (
+          <ScrollView contentContainerStyle={styles.wrap}
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={() => init()}/>}>
+            
+            {renderHeader()}
+            
+            <Label value='Suas inscrições aparecerão aqui'/>
+          </ScrollView>
+        )
+      }
     }
   }
 
@@ -53,13 +83,9 @@ const InscricoesScreen = ({navigation}) => {
     <>
       <StatusBar backgroundColor='#fafafa' barStyle='dark-content'/>
 
-      <View style={styles.wrap}>
-        <Header navigation={navigation}/>
+      {renderSubs()}
 
-        {renderSubs()}
-
-        <Footer navigation={navigation} selected='inscricoes'/>
-      </View>
+      <Footer navigation={navigation} selected='inscricoes'/>
     </>
   );
 }

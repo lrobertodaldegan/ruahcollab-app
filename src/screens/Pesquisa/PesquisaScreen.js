@@ -1,17 +1,19 @@
 import {useState} from 'react';
 import {
-  View,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
   FlatList,
-  ActivityIndicator
+  RefreshControl,
 } from 'react-native';
 import DemandaCard from '../../components/DemandaCard';
 import InstitutionCard from '../../components/InstitutionCard';
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
+import Label from '../../components/Label';
 import {get} from '../../service/Rest/RestService';
+import Loader from '../../components/Loader';
 
 const PesquisaScreen = ({navigation}) => {
   const [demands, setDemands] = useState([]);
@@ -26,7 +28,7 @@ const PesquisaScreen = ({navigation}) => {
 
     let url = '/demand';
 
-    if(s && s.length > 2)
+    if(s && s?.length > 2)
       url = url + `?title=${s}`;
 
     get(url, () => navigation.navigate('login')).then(response => {
@@ -61,26 +63,48 @@ const PesquisaScreen = ({navigation}) => {
 
   const renderResults = () => {
     if(loading){
-      return <ActivityIndicator color={'#8A4A20'}/>
+      return <Loader />
     } else {
-      return (
-        <FlatList style={styles.content}
-            keyExtractor={(item) => item._id ? item._id : item.id}
-            data={results}
-            renderItem={({item}) => {
-              if(item.searchType === 'd'){
-                let demand = {
-                  ...item, 
-                  institution:institutions.filter(i => i._id === item.institutionId)[0]
-                }
-
-                return <DemandaCard item={demand}/>
-              } else {
-                return <InstitutionCard item={item}/>
+      if(results && results?.length > 0){
+        return (
+          <FlatList style={styles.content}
+              data={results}    
+              keyExtractor={(item) => item._id ? item._id : item.id}
+              ListHeaderComponent={
+                <Header navigation={navigation} searchActive={true}
+                    searchAction={(s, f) => doSearch(s, f)}/>
               }
-            }}
-        />
-      )
+              refreshControl={
+                <RefreshControl refreshing={loading} 
+                    onRefresh={() => doSearch(null, null)}/>
+              }
+              renderItem={({item}) => {
+                if(item.searchType === 'd'){
+                  let demand = {
+                    ...item, 
+                    institution:institutions.filter(i => i._id === item.institutionId)[0]
+                  }
+
+                  return <DemandaCard item={demand}/>
+                } else {
+                  return <InstitutionCard item={item}/>
+                }
+              }}
+          />
+        )
+      } else {
+        return (
+          <ScrollView contentContainerStyle={styles.wrap}
+              refreshControl={<RefreshControl refreshing={loading} 
+              onRefresh={() => doSearch(null, null)}/>}>
+
+            <Header navigation={navigation} searchActive={true}
+                searchAction={(s, f) => doSearch(s, f)}/>
+
+            <Label value='Nenhum resultado encontrado'/>
+          </ScrollView>
+        )
+      }
     }
   }
 
@@ -88,13 +112,9 @@ const PesquisaScreen = ({navigation}) => {
     <>
       <StatusBar backgroundColor='#fafafa' barStyle='dark-content'/>
 
-      <View style={styles.wrap}>
-        <Header navigation={navigation} searchActive={true}
-            searchAction={(s, f) => doSearch(s, f)}/>
+      {renderResults()}
 
-        {renderResults()}
-        <Footer navigation={navigation} selected='pesquisa'/>
-      </View>
+      <Footer navigation={navigation} selected='pesquisa'/>
     </>
   );
 }
@@ -103,10 +123,11 @@ const size = Dimensions.get('screen');
 
 const styles= StyleSheet.create({
   wrap:{
-    height:size.height,
+    height:size.height + 70,
     width:size.width,
     backgroundColor:'#fafafa',
     padding:20,
+    marginBottom:50
   },
   content:{
     marginBottom:120
