@@ -10,6 +10,7 @@ import {
 import Button from '../../components/Button';
 import Logo from '../../components/Logo';
 import Label from '../../components/Label';
+import ErrorLabel from '../../components/ErrorLabel';
 import DeviceInfo from 'react-native-device-info';
 import CacheService from '../../service/Cache/CacheService';
 import {post} from '../../service/Rest/RestService';
@@ -20,33 +21,52 @@ const PrimeiroAcessoScreen = ({navigation}) => {
   const [telefone, setTelefone] = useState(null);
   const [resumo, setResumo] = useState(null);
   const [senha, setSenha] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  const renderError = () => {
+    if(errorMsg && errorMsg !== null)
+      return <ErrorLabel value={errorMsg} style={styles.lblError}/>
+    else
+      return <></>
+  }
 
   const handleSubmit = () => {
-    let deviceId = DeviceInfo.getDeviceId();
-    let uniqueId = DeviceInfo.getUniqueIdSync();
+    if(nome && nome != null
+            && email && email != null
+            && telefone && telefone != null
+            && resumo && resumo != null
+            && senha && senha != null){
 
-    let device = {
-      id: deviceId,
-      uniqueId: uniqueId,
-    }
+      setErrorMsg(null);
 
-    let user = {
-      name: nome,
-      resumo: resumo,
-      phone: telefone,
-      email: email
-    }
+      let deviceId = DeviceInfo.getDeviceId();
+      let uniqueId = DeviceInfo.getUniqueIdSync();
 
-    post('/auth/v/signup', {...user, password:senha, device:device}).then(response => {
-      if(response.status == 201){
-        handleSignin();
-      } else {
-        navigation.navigate('error');
+      let device = {
+        id: deviceId,
+        uniqueId: uniqueId,
       }
-    }).catch(err => {
-      console.log(err); 
-      navigation.navigate('error');
-    });
+
+      let user = {
+        name: nome,
+        resumo: resumo,
+        phone: telefone,
+        email: email
+      }
+
+      post('/auth/v/signup', {...user, password:senha, device:device}).then(response => {
+        if(response.status == 201){
+          handleSignin();
+        } else {
+          navigation.navigate('error');
+        }
+      }).catch(err => {
+        console.log(err); 
+        navigation.navigate('error');
+      });
+    } else {
+      setErrorMsg('Preencha todos os campos obrigatórios (*) para continuar!');
+    }
   }
 
   const handleSignin = () => {
@@ -69,24 +89,26 @@ const PrimeiroAcessoScreen = ({navigation}) => {
         <Label value='Informe seus dados para cadastro:' style={styles.title}/>
 
         <TextInput style={styles.input} placeholderTextColor='#b57145'
-            placeholder='Seu nome'
+            placeholder='Seu nome*'
             value={nome} onChangeText={(val) => setNome(val)}/>
 
         <TextInput style={styles.input} placeholderTextColor='#b57145'
-            placeholder='Seu telefone (Ex.: 041995429288)'
+            placeholder='Seu telefone (Ex.: 041995429288)*'
             value={telefone} onChangeText={(val) => setTelefone(val)}/>
 
         <TextInput style={styles.input} placeholderTextColor='#b57145'
-            placeholder='Seu email'
+            placeholder='Seu email*'
             value={email} onChangeText={(val) => setEmail(val)}/>
 
         <TextInput style={styles.input} placeholderTextColor='#b57145'
-            placeholder='Sua senha'
+            placeholder='Sua senha*'
             value={senha} onChangeText={(val) => setSenha(val)}/>
 
         <TextInput style={styles.txtArea} placeholderTextColor='#b57145'
             placeholder='Nos conte sobre você (profissão, experiência, etc)'
             value={resumo} onChangeText={(val) => setResumo(val)}/>
+
+        {renderError()}
 
         <Button label={'Pronto!'} onPress={() => handleSubmit()}/>
 

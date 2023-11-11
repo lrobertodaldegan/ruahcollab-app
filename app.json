@@ -1,4 +1,7 @@
 {
-  "name": "ruahcollab",
-  "displayName": "ruahcollab"
+  "name": "ruahcollab-volunteer",
+  "displayName": "ruahcollab voluntários",
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-2420598559068720~5008556198"
+  }
 }

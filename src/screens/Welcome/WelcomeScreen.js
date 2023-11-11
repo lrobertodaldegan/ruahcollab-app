@@ -13,6 +13,9 @@ import Logo from '../../components/Logo';
 import Button from '../../components/Button';
 import CacheService from '../../service/Cache/CacheService';
 import { post } from '../../service/Rest/RestService';
+import mobileAds from 'react-native-google-mobile-ads';
+
+mobileAds().initialize();
 
 const WelcomeScreen = ({navigation}) => {
   const [loading, setLoading] = useState(false);

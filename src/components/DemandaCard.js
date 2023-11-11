@@ -76,7 +76,7 @@ const DemandaCard = ({item, errorHandler=()=>null}) => {
                 <Label value='VOCÊ FOI ACEITO!!!' style={styles.statusLbl}/>
               </View>
 
-              <Label value='Entre em contato com a instituição ou aguarde entrarem em contato com você!' 
+              <Label value={`Entre em contato com a instituição\nou aguarde entrarem em contato com você!`}
                   style={styles.statusLegend}/>
             </>
           );
@@ -89,7 +89,7 @@ const DemandaCard = ({item, errorHandler=()=>null}) => {
                 <Label value='Inscrição enviada...' style={styles.statusLbl}/>
               </View>
 
-              <Label value='Sua inscrição foi enviada, mas ainda não foi aceita.' 
+              <Label value={`Sua inscrição foi enviada,\nmas ainda não foi aceita.`}
                   style={styles.statusLegend}/>
             </>
           );
@@ -103,11 +103,59 @@ const DemandaCard = ({item, errorHandler=()=>null}) => {
                     onPress={() => handleSubscription()}/>
               </View>
 
-              <Label value='Ao clicar no botão, enviaremos sua inscrição na demanda para a instituição.' 
+              <Label value={`Ao clicar no botão, enviaremos sua inscrição\nna demanda para a instituição.`}
                   style={styles.statusLegend}/>
             </>
         );
       }
+    }
+  }
+
+  const renderContactPhone = () => {
+    let contactPhone = getDemand().institution?.contactPhone;
+
+    if(!(contactPhone && contactPhone !== null && contactPhone.length > 3)){
+      contactPhone = getDemand().institution?.phone;
+    }
+
+    if(contactPhone && contactPhone !== null && contactPhone.length > 3){
+      return (
+        <DetalheDemandaLabel label={contactPhone}
+            action={async () => await Linking.openURL(`tel:${contactPhone}`)}
+            icon={faPhone}
+        />
+      )  
+    } else {
+      return <></>
+    }
+  }
+
+  const renderContactEmail = () => {
+    let contactEmail = getDemand().institution?.contactEmail;
+
+    if(!(contactEmail && contactEmail !== null && contactEmail.length > 3)){
+      contactEmail = getDemand().institution?.email;
+    }
+
+    if(contactEmail && contactEmail !== null && contactEmail.length > 3){
+      return (
+        <DetalheDemandaLabel label={contactEmail}
+            action={async () => await Linking.openURL(`mailto:${contactEmail}`)} 
+            icon={faEnvelope}
+        />
+      )
+    } else {
+      return <></>
+    }
+  }
+
+  const getSiteAction = () => {
+    if(getDemand().institution?.site 
+        && getDemand().institution?.site !== null
+        && getDemand().institution?.site.length > 3){
+      return async () => await Linking.openURL(`${getDemand().institution?.site}`)
+    } else {
+      return () => null
     }
   }
 
@@ -122,24 +170,16 @@ const DemandaCard = ({item, errorHandler=()=>null}) => {
             icon={faCalendarDays}/>
 
         <DetalheDemandaLabel label={getDemand().institution?.name} 
-            action={async () => getDemand().institution?.site ? await Linking.openURL(`${getDemand().institution?.site}`) : null}
+            action={getSiteAction}
             icon={faPlaceOfWorship}/>
 
         <DetalheDemandaLabel label={getDemand().institution?.address} 
             action={async () => await Linking.openURL(`geo:0,0?q=${getDemand().institution?.address}`)}
             icon={faLocationDot}/>
 
-        <DetalheDemandaLabel label={getDemand().institution?.contactPhone 
-                                      ? getDemand().institution?.contactPhone 
-                                      : getDemand().institution?.phone }
-            action={async () => await Linking.openURL(`tel:${getDemand().institution?.contactPhone ? getDemand().institution?.contactPhone : getDemand().institution?.phone}`)}
-            icon={faPhone}/>
+        {renderContactPhone()}
 
-        <DetalheDemandaLabel label={getDemand().institution?.contactEmail
-                                      ? getDemand().institution?.contactEmail
-                                      : getDemand().institution?.email}
-            action={async () => await Linking.openURL(`mailto:${getDemand().institution?.contactEmail ? getDemand().institution?.contactEmail : getDemand().institution?.email}`)} 
-            icon={faEnvelope}/>
+        {renderContactEmail()}
       </View>
 
      {getStatusComponent()}

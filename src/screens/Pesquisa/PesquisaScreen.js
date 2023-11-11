@@ -1,5 +1,6 @@
-import {useState} from 'react';
+import react, {useState, useEffect} from 'react';
 import {
+  View,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -19,7 +20,13 @@ const PesquisaScreen = ({navigation}) => {
   const [demands, setDemands] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [results, setResults] = useState([]);
+  const [filter, setFilter] = useState(null);
+  const [searchText, setSearchText] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    doSearch(null, null);
+  }, []);
 
   const doSearch = (s, f) => {
     setLoading(true);
@@ -32,14 +39,24 @@ const PesquisaScreen = ({navigation}) => {
       url = url + `?title=${s}`;
 
     get(url, () => navigation.navigate('login')).then(response => {
+      setSearchText(null);
+
       if(response.status === 200){
         setDemands(response.data.demands);
         setInstitutions(response.data.institutions);
 
+        handleResults(response.data.demands, response.data.institutions, null);
+      }
+
+      setLoading(false);
+    }).catch(err => {console.log(err); navigation.navigate('error');});
+  }
+
+  const handleResults = (demands, institutions, f) => {
         let rs = [];
 
         if(f === null || f && f === 'demanda'){
-          response.data.demands.forEach(d => {
+          demands.forEach(d => {
             d.searchType='d';
 
             rs.push(d);
@@ -47,7 +64,7 @@ const PesquisaScreen = ({navigation}) => {
         }
 
         if(f === null || f && f === 'instituicao'){
-          response.data.institutions.forEach( i => {
+          institutions.forEach( i => {
             i.searchType='i';
             
             rs.push(i);
@@ -55,28 +72,42 @@ const PesquisaScreen = ({navigation}) => {
         }
 
         setResults(rs);
-      }
+  }
 
-      setLoading(false);
-    }).catch(err => {console.log(err); navigation.navigate('error');});
+  const handleChangeFilter = (newFilter) => {
+    if(filter === newFilter)
+      setFilter(null);
+    else
+      setFilter(newFilter);
+
+      handleResults(demands, institutions, filter === newFilter ? null : newFilter);
   }
 
   const renderResults = () => {
     if(loading){
       return <Loader />
     } else {
-      if(results && results?.length > 0){
+      // if(results && results?.length > 0){
         return (
           <FlatList style={styles.content}
+              keyboardShouldPersistTaps='always'
+              keyboardDismissMode='on-drag'
               data={results}    
               keyExtractor={(item) => item._id ? item._id : item.id}
               ListHeaderComponent={
                 <Header navigation={navigation} searchActive={true}
-                    searchAction={(s, f) => doSearch(s, f)}/>
+                    text={searchText} setText={setSearchText}
+                    filter={filter} handleChangeFilters={handleChangeFilter}
+                    searchAction={doSearch}/>
               }
               refreshControl={
                 <RefreshControl refreshing={loading} 
                     onRefresh={() => doSearch(null, null)}/>
+              }
+              ListEmptyComponent={
+                <Label style={styles.noneResult} 
+                    value='Nenhum resultado encontrado : /'
+                />
               }
               renderItem={({item}) => {
                 if(item.searchType === 'd'){
@@ -92,30 +123,32 @@ const PesquisaScreen = ({navigation}) => {
               }}
           />
         )
-      } else {
-        return (
-          <ScrollView contentContainerStyle={styles.wrap}
-              refreshControl={<RefreshControl refreshing={loading} 
-              onRefresh={() => doSearch(null, null)}/>}>
+      // } else {
+      //   return (
+      //     <ScrollView contentContainerStyle={[styles.wrap, {padding:0}]}
+      //         keyboardShouldPersistTaps='always'
+      //         keyboardDismissMode='on-drag'
+      //         refreshControl={<RefreshControl refreshing={loading} 
+      //         onRefresh={() => doSearch(null, null)}/>}>
 
-            <Header navigation={navigation} searchActive={true}
-                searchAction={(s, f) => doSearch(s, f)}/>
+      //       <Header navigation={navigation} searchActive={true}
+      //           searchAction={doSearch}/>
 
-            <Label value='Nenhum resultado encontrado'/>
-          </ScrollView>
-        )
-      }
+      //       <Label value='Nenhum resultado encontrado'/>
+      //     </ScrollView>
+      //   )
+      // }
     }
   }
 
   return (
-    <>
+    <View style={[styles.wrap]}>
       <StatusBar backgroundColor='#fafafa' barStyle='dark-content'/>
 
       {renderResults()}
 
       <Footer navigation={navigation} selected='pesquisa'/>
-    </>
+    </View>
   );
 }
 
@@ -123,7 +156,7 @@ const size = Dimensions.get('screen');
 
 const styles= StyleSheet.create({
   wrap:{
-    height:size.height + 70,
+    height:size.height * 0.998,
     width:size.width,
     backgroundColor:'#fafafa',
     padding:20,
@@ -138,6 +171,10 @@ const styles= StyleSheet.create({
     marginTop:30,
     marginBottom:20,
   },
+  noneResult:{
+    textAlign:'center',
+    marginTop:20
+  }
 });
 
 export default PesquisaScreen;

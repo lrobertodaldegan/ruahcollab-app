@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import {
+  View,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -48,45 +49,36 @@ const InscricoesScreen = ({navigation}) => {
     if(loading){
       return <Loader />
     } else {
-      if(inscricoes && inscricoes.length > 0){
-        return (
-          <FlatList style={styles.content}
-              ListHeaderComponent={renderHeader()}
-              keyExtractor={(item) => item.id}
-              data={inscricoes}
-              refreshControl={
-                <RefreshControl refreshing={loading} onRefresh={() => init()}/>
-              }
-              renderItem={({item}) => {
-                if(item)
-                  return <DemandaCard item={item}/>
-                else
-                  return <></>
-              }}
-          />
-        )
-      } else {
-        return (
-          <ScrollView contentContainerStyle={styles.wrap}
-              refreshControl={<RefreshControl refreshing={loading} onRefresh={() => init()}/>}>
-            
-            {renderHeader()}
-            
-            <Label value='Suas inscrições aparecerão aqui'/>
-          </ScrollView>
-        )
-      }
+      return (
+        <FlatList style={[styles.content, {padding:20}]}
+            ListHeaderComponent={renderHeader()}
+            keyExtractor={(item) => item.id}
+            data={inscricoes}
+            refreshControl={
+              <RefreshControl refreshing={loading} onRefresh={() => init()}/>
+            }
+            ListEmptyComponent={
+              <Label style={styles.noResultLbl} value='Suas inscrições aparecerão aqui'/>
+            }
+            renderItem={({item}) => {
+              if(item)
+                return <DemandaCard item={item}/>
+              else
+                return <></>
+            }}
+        />
+      )
     }
   }
 
   return (
-    <>
+    <View style={[styles.wrap, {padding:0}]}>
       <StatusBar backgroundColor='#fafafa' barStyle='dark-content'/>
 
       {renderSubs()}
 
       <Footer navigation={navigation} selected='inscricoes'/>
-    </>
+    </View>
   );
 }
 
@@ -108,6 +100,10 @@ const styles= StyleSheet.create({
     marginTop:30,
     marginBottom:20,
   },
+  noResultLbl:{
+    textAlign:'center',
+    marginTop:20
+  }
 });
 
 export default InscricoesScreen;

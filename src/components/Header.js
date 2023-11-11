@@ -11,23 +11,18 @@ import Logo from "./Logo";
 import Icon from "./Icon";
 import { faCircleUser, faPlaceOfWorship, faLungs } from '@fortawesome/free-solid-svg-icons'
 import Button from './Button';
+import { BannerAd,BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-2420598559068720/6851943298';
 
 const link = 'https://rc.acaodoespirito.com.br';
 
-const Header = ({navigation, searchAction=(search, filter)=>null, searchActive=false}) => {
-  const [search, setSearch] = useState(null);
-  const [filter, setFilter] = useState(null);
-
-  useEffect(() => {
-    searchAction(search, filter);
-  }, [filter]);
-
-  const handleChangeFilters = (ftr) => {
-    if(filter === ftr)
-      setFilter(null);
-    else
-      setFilter(ftr);
-  }
+const Header = ({navigation, 
+                  searchAction=()=>null, 
+                  handleChangeFilters=()=>null, 
+                  text,
+                  setText,
+                  filter=null,
+                  searchActive=false}) => {
 
   const getLeftComponent = () => {
     if(searchActive === true){
@@ -37,7 +32,7 @@ const Header = ({navigation, searchAction=(search, filter)=>null, searchActive=f
 
           <TextInput style={styles.input} placeholderTextColor='#8A4A20'
               placeholder='Busque por demanda ou instituição'
-              value={search} onChangeText={(val) => setSearch(val)}/>
+              value={text} onChangeText={(val) => setText(val)}/>
         </View>
       );
     }
@@ -50,7 +45,7 @@ const Header = ({navigation, searchAction=(search, filter)=>null, searchActive=f
       return (
         <>
           <Button label='Pesquisar' style={styles.btn} 
-              labelStyle={styles.btnLbl} onPress={() => searchAction(search, filter)}/>
+              labelStyle={styles.btnLbl} onPress={() => searchAction(text, filter)}/>
 
           <View style={styles.filterOptsWrap}>
             <Button label='Instituição' icon={faPlaceOfWorship} 
@@ -88,6 +83,15 @@ const Header = ({navigation, searchAction=(search, filter)=>null, searchActive=f
 
   return (
     <>
+      <View style={{alignItems:'center'}}>
+        <BannerAd
+            unitId={adUnitId}
+            size={BannerAdSize.BANNER}
+            requestOptions={{
+              requestNonPersonalizedAdsOnly: false,
+            }}
+        />
+      </View>
       <View style={styles.header}>
         <TouchableHighlight underlayColor='#fafafa' 
               onPress={async () => await Linking.openURL(link)}>
@@ -136,7 +140,8 @@ const styles = StyleSheet.create({
     fontFamily:'Montserrat-Regular',
     fontSize:12,
     width:size.width - 150,
-    marginLeft:5
+    marginLeft:5,
+    color:'#8A4A20',
   },
   btn:{
     backgroundColor:'#fafafa',
